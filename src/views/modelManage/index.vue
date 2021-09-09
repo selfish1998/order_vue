@@ -65,7 +65,7 @@
       :close-on-click-modal="false"
       width="400px"
       :before-close="()=> {dialogVisible=false}"
-      @close="resetForm"
+      @closed="resetForm"
     >
       <div>
         <el-form ref="formData" :model="formData" label-width="100px">
@@ -153,9 +153,9 @@ export default {
     },
     modify(row) {
       this.isEdit = true
+      this.dialogVisible = true
       this.$nextTick(() => {
         this.formData = { ...row }
-        this.dialogVisible = true
       })
     },
     resetForm() {

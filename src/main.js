@@ -9,7 +9,8 @@ import VXETable from 'vxe-table'
 import 'vxe-table/lib/style.css'
 import VXETablePluginElement from 'vxe-table-plugin-element'
 import 'vxe-table-plugin-element/dist/style.css'
-
+import VXETablePluginExportXLSX from 'vxe-table-plugin-export-xlsx'
+VXETable.use(VXETablePluginExportXLSX)
 import '@/styles/index.scss' // global css
 
 import App from './App'

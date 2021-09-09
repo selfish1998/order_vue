@@ -99,9 +99,9 @@ export default {
   methods: {
     modify(row) {
       this.isEdit = true
+      this.dialogVisible = true
       this.$nextTick(() => {
         this.formData = { ...row }
-        this.dialogVisible = true
       })
     },
     onSubmit() {

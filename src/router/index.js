@@ -62,7 +62,7 @@ export const constantRoutes = [
       path: 'orderManage',
       name: '订单管理',
       component: () => import('@/views/orderManage/index'),
-      meta: { title: '订单管理', icon: 'dashboard' }
+      meta: { title: '订单管理', icon: 'el-icon-s-order' }
     }]
   },
   {
@@ -73,7 +73,7 @@ export const constantRoutes = [
       path: 'modelManage',
       name: '型号管理',
       component: () => import('@/views/modelManage/index'),
-      meta: { title: '型号管理', icon: 'dashboard' }
+      meta: { title: '型号管理', icon: 'el-icon-s-grid' }
     }]
   },
   {
@@ -84,7 +84,7 @@ export const constantRoutes = [
       path: 'companyManage',
       name: '公司管理',
       component: () => import('@/views/companyManage/index'),
-      meta: { title: '公司管理', icon: 'dashboard' }
+      meta: { title: '公司管理', icon: 'el-icon-office-building' }
     }]
   },
 

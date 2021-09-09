@@ -23,7 +23,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="getOrderList">查询</el-button>
-          <el-button type="primary" @click="dialogVisible = true">新增</el-button>
+          <el-button type="primary" @click="dialogVisible = true; isEdit = false;">新增</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -74,17 +74,18 @@
     <el-dialog
       title="提示"
       :visible.sync="dialogVisible"
-      width="70%"
+      width="64%"
       :close-on-click-modal="false"
       :before-close="() => {dialogVisible = false}"
+      @closed="closeDialog"
     >
       <div>
-        <el-form ref="formData" :model="formData" :inline="true" :disabled="!isEdit">
+        <el-form ref="formData" :model="formData" :inline="true">
           <el-form-item label="单号" prop="orderNum" required>
-            <el-input v-model="formData.orderNum" clearable placeholder="请输入单号" />
+            <el-input v-model="formData.orderNum" style="width: 168px;" clearable placeholder="请输入单号" />
           </el-form-item>
           <el-form-item label="公司名称" prop="companyName" required>
-            <el-select v-model="formData.companyName" clearable placeholder="请选择公司" @change="getPriceAndModelsByCompany">
+            <el-select v-model="formData.companyName" style="width: 168px;" clearable placeholder="请选择公司" @change="getPriceAndModelsByCompany">
               <el-option v-for="(item, index) in companyList" :key="index" :value="item.companyName" />
             </el-select>
           </el-form-item>
@@ -92,12 +93,13 @@
             <el-date-picker
               v-model="formData.orderTime"
               type="date"
+              style="width: 168px;"
               value-format="yyyy-MM-dd"
               placeholder="选择日期"
             />
           </el-form-item>
           <el-form-item label="m³单价" prop="unitPrice" required>
-            <el-input v-model="formData.unitPrice" clearable placeholder="请输入每立方单价" />
+            <el-input v-model="formData.unitPrice" style="width: 168px;" clearable placeholder="请输入每立方单价" />
           </el-form-item>
         </el-form>
         <vxe-table
@@ -109,79 +111,84 @@
           :data="tableData"
           :footer-method="footerMethod"
           align="center"
-          class="mytable-style"
           :export-config="{}"
-          :edit-config="{trigger: 'click', enabled: isEdit, mode: 'cell', showIcon: false}"
+          class="mytable-style"
+          :edit-config="{trigger: 'click', mode: 'cell', showIcon: false}"
         >
-          <vxe-column
-            type="seq"
-            title="序号"
-            width="60"
-          />
-          <vxe-column
-            field="modelName"
-            title="型号"
-            :edit-render="{type: 'default'}"
-          >
-            <template #edit="scope">
-              <el-select v-model="scope.row.modelName" clearable filterable placeholder="请选择型号" @change="val => setSize(val, scope)">
-                <el-option v-for="(item, index) in modelList" :key="index" :value="item.modelName" />
-              </el-select>
-            </template>
-            <template v-slot="{row}">
-              {{ row.modelName }}
-            </template>
+          <vxe-column :title="'单号： ' + formData.orderNum">
+            <vxe-column
+              type="seq"
+              title="序号"
+              width="60"
+            />
+            <vxe-column
+              field="modelName"
+              title="型号"
+              :edit-render="{type: 'default'}"
+            >
+              <template #edit="scope">
+                <el-select v-model="scope.row.modelName" clearable filterable placeholder="请选择型号" @change="val => setSize(val, scope)">
+                  <el-option v-for="(item, index) in modelList" :key="index" :value="item.modelName" />
+                </el-select>
+              </template>
+              <template v-slot="{row}">
+                {{ row.modelName }}
+              </template>
+            </vxe-column>
+            <vxe-column
+              field="leng"
+              title="长"
+              width="70"
+            />
+            <vxe-column
+              field="width"
+              title="宽"
+              width="70"
+            />
+            <vxe-column
+              field="height"
+              title="高"
+              width="70"
+            />
+            <vxe-column
+              field="volume"
+              title="体积"
+              width="100"
+            />
           </vxe-column>
-          <vxe-column
-            field="leng"
-            title="长"
-            width="70"
-          />
-          <vxe-column
-            field="width"
-            title="宽"
-            width="70"
-          />
-          <vxe-column
-            field="height"
-            title="高"
-            width="70"
-          />
-          <vxe-column
-            field="volume"
-            title="体积"
-            width="100"
-          />
-          <vxe-column
-            field="price"
-            title="价格"
-            width="160"
-          >
-            <template #default="{ row }">
-              <span>{{ getPrice(row) }}</span>
-            </template>
-          </vxe-column>
-          <vxe-column
-            field="amount"
-            title="数量"
-            width="160"
-            :edit-render="{name: 'input', attrs: {type: 'number'}}"
-          />
-          <vxe-column
-            field="totalPrice"
-            title="总价"
-            width="180"
-          >
-            <template #default="{ row }">
-              <span>{{ getTotalPrice(row) }}</span>
-            </template>
-          </vxe-column>
+          <vxe-colgroup :title="'日期： ' + formData.orderTime.split('T')[0]">
+            <vxe-column
+              field="price"
+              title="价格"
+              width="140"
+            >
+              <template #default="{ row }">
+                <span>{{ getPrice(row) }}</span>
+              </template>
+            </vxe-column>
+            <vxe-column
+              field="amount"
+              title="数量"
+              width="120"
+              :edit-render="{name: 'input', attrs: {type: 'number'}}"
+            />
+            <vxe-column
+              field="totalPrice"
+              title="总价"
+              width="140"
+            >
+              <template #default="{ row }">
+                <span>{{ getTotalPrice(row) }}</span>
+              </template>
+            </vxe-column>
+          </vxe-colgroup>
+
         </vxe-table>
       </div>
       <span slot="footer" class="dialog-footer">
         <el-button @click="exportExcel">导 出</el-button>
         <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button v-if="isEdit" type="primary" @click="submit">确 定</el-button>
+        <el-button type="primary" @click="submit">确 定</el-button>
       </span>
     </el-dialog>
 
@@ -214,9 +221,7 @@ export default {
       },
       dialogVisible: false,
       companyList: [],
-      ordertableData: [
-        // { orderNum: '12213', orderTime: '2021-08-08', orderTotal: '123213', companyName: '撒旦发是' }
-      ],
+      ordertableData: [],
       tableData: [
         { modelName: '', leng: '', width: '', height: '', volume: '', price: '', amount: '', totalPrice: '' },
         { modelName: '', leng: '', width: '', height: '', volume: '', price: '', amount: '', totalPrice: '' },
@@ -285,7 +290,10 @@ export default {
         scope.row.volume = sizes.volume
       }
     },
-
+    closeDialog() {
+      // this.$refs.xTable.clearData()
+      this.$refs['formData'].resetFields()
+    },
     getPrice(row) {
       row.price = this.formData.unitPrice * row.volume
       if (row.price) {
@@ -294,11 +302,11 @@ export default {
     },
     modify(row) {
       this.isEdit = true
+      this.dialogVisible = true
       this.$nextTick(() => {
         this.formData = { ...row }
         this.tableData = [...row.modelList]
         this.getPriceAndModelsByCompany(this.formData.companyName)
-        this.dialogVisible = true
       })
     },
     getTotalPrice(row) {
@@ -313,9 +321,10 @@ export default {
       this.formQuery.startTime = val[0]
       this.formQuery.endTime = val[1]
     },
-    exportExcel() {
-      if (this.formData.orderTime && this.formData.orderNum) {
-        this.$refs.xTable.exportData({ filename: `${this.formData.orderNum}`, type: 'csv' })
+    async exportExcel() {
+      const { orderTime, orderNum, companyName } = this.formData
+      if (orderTime && orderNum) {
+        this.$refs.xTable.exportData({ filename: `${orderNum}-${companyName}`, type: 'xlsx', sheetName: companyName, useStyle: true })
       } else {
         this.$message.warning('请输入单号和日期')
       }
