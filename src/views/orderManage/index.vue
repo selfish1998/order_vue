@@ -24,6 +24,7 @@
         <el-form-item>
           <el-button type="primary" @click="getOrderList">查询</el-button>
           <el-button type="primary" @click="dialogVisible = true; isEdit = false;">新增</el-button>
+          <el-button type="warning" @click="exportOrder">导出</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -74,7 +75,7 @@
     <el-dialog
       title="提示"
       :visible.sync="dialogVisible"
-      width="64%"
+      width="80%"
       :close-on-click-modal="false"
       :before-close="() => {dialogVisible = false}"
       @closed="closeDialog"
@@ -115,78 +116,81 @@
           class="mytable-style"
           :edit-config="{trigger: 'click', mode: 'cell', showIcon: false}"
         >
-          <vxe-column :title="'单号： ' + formData.orderNum">
-            <vxe-column
-              type="seq"
-              title="序号"
-              width="60"
-            />
-            <vxe-column
-              field="modelName"
-              title="型号"
-              :edit-render="{type: 'default'}"
-            >
-              <template #edit="scope">
-                <el-select v-model="scope.row.modelName" clearable filterable placeholder="请选择型号" @change="val => setSize(val, scope)">
-                  <el-option v-for="(item, index) in modelList" :key="index" :value="item.modelName" />
-                </el-select>
-              </template>
-              <template v-slot="{row}">
-                {{ row.modelName }}
-              </template>
-            </vxe-column>
-            <vxe-column
-              field="leng"
-              title="长"
-              width="70"
-            />
-            <vxe-column
-              field="width"
-              title="宽"
-              width="70"
-            />
-            <vxe-column
-              field="height"
-              title="高"
-              width="70"
-            />
-            <vxe-column
-              field="volume"
-              title="体积"
-              width="100"
-            />
+          <!-- <vxe-column :title="'单号： ' + formData.orderNum"> -->
+          <vxe-column
+            type="seq"
+            title="序号"
+            width="55"
+          />
+          <vxe-column
+            field="modelName"
+            title="型号"
+            width="150"
+            :edit-render="{type: 'default'}"
+          >
+            <template #edit="scope">
+              <el-select v-model="scope.row.modelName" clearable filterable placeholder="请选择型号" @change="val => setSize(val, scope)">
+                <el-option v-for="(item, index) in modelList" :key="index" :value="item.modelName" />
+              </el-select>
+            </template>
+            <template v-slot="{row}">
+              {{ row.modelName }}
+            </template>
           </vxe-column>
-          <vxe-colgroup :title="'日期： ' + formData.orderTime.split('T')[0]">
-            <vxe-column
-              field="price"
-              title="价格"
-              width="140"
-            >
-              <template #default="{ row }">
-                <span>{{ getPrice(row) }}</span>
-              </template>
-            </vxe-column>
-            <vxe-column
-              field="amount"
-              title="数量"
-              width="120"
-              :edit-render="{name: 'input', attrs: {type: 'number'}}"
-            />
-            <vxe-column
-              field="totalPrice"
-              title="总价"
-              width="140"
-            >
-              <template #default="{ row }">
-                <span>{{ getTotalPrice(row) }}</span>
-              </template>
-            </vxe-column>
-          </vxe-colgroup>
+          <vxe-column
+            field="leng"
+            title="长"
+            :edit-render="{name: 'input', attrs: {type: 'number'}}"
+          />
+          <vxe-column
+            field="width"
+            title="宽"
+            :edit-render="{name: 'input', attrs: {type: 'number'}}"
+          />
+          <vxe-column
+            field="height"
+            title="高"
+            :edit-render="{name: 'input', attrs: {type: 'number'}}"
+          />
+          <vxe-column
+            field="volume"
+            title="体积"
+            width="100"
+          ><template #default="{ row }">
+            <span>{{ getVolume(row) }}</span>
+          </template>
+          </vxe-column>
+          <!-- </vxe-column> -->
+          <!-- <vxe-colgroup :title="'日期： ' + formData.orderTime.split('T')[0]"> -->
+          <vxe-column
+            field="price"
+            title="价格"
+            width="140"
+          >
+            <template #default="{ row }">
+              <span>{{ getPrice(row) }}</span>
+            </template>
+          </vxe-column>
+          <vxe-column
+            field="amount"
+            title="数量"
+            :edit-render="{name: 'input', attrs: {type: 'number'}}"
+          />
+          <vxe-column
+            field="totalPrice"
+            title="总价"
+            width="140"
+          >
+            <template #default="{ row }">
+              <span>{{ getTotalPrice(row) }}</span>
+            </template>
+          </vxe-column>
+          <!-- </vxe-colgroup> -->
 
         </vxe-table>
       </div>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="exportExcel">导 出</el-button>
+        <!-- <el-button @click="exportExcel">导 出</el-button> -->
         <el-button @click="dialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="submit">确 定</el-button>
       </span>
@@ -198,7 +202,7 @@
 // import XEUtils from 'xe-utils'
 import { getCompanyList } from '@/api/company'
 import { getModelList } from '@/api/model'
-import { getOrderList, addOrder, updateOrder, delOrder } from '@/api/order'
+import { getOrderList, addOrder, updateOrder, delOrder, exportOrder } from '@/api/order'
 export default {
   name: 'OrderManage',
   data() {
@@ -280,24 +284,48 @@ export default {
       }
     },
     setSize(val, scope) {
-      const sizes = this.modelList.find(item => {
-        return item.modelName === val
-      })
-      if (sizes) {
-        scope.row.leng = sizes.leng
-        scope.row.height = sizes.height
-        scope.row.width = sizes.width
-        scope.row.volume = sizes.volume
+      if (val) {
+        const sizes = this.modelList.find(item => {
+          return item.modelName === val
+        })
+        if (sizes) {
+          scope.row.leng = sizes.leng
+          scope.row.height = sizes.height
+          scope.row.width = sizes.width
+          scope.row.volume = sizes.volume
+        }
+      } else {
+        scope.row.leng = ''
+        scope.row.height = ''
+        scope.row.width = ''
+        scope.row.volume = ''
       }
     },
     closeDialog() {
       // this.$refs.xTable.clearData()
       this.$refs['formData'].resetFields()
+      this.tableData = [
+        { modelName: '', leng: '', width: '', height: '', volume: '', price: '', amount: '', totalPrice: '' },
+        { modelName: '', leng: '', width: '', height: '', volume: '', price: '', amount: '', totalPrice: '' },
+        { modelName: '', leng: '', width: '', height: '', volume: '', price: '', amount: '', totalPrice: '' },
+        { modelName: '', leng: '', width: '', height: '', volume: '', price: '', amount: '', totalPrice: '' },
+        { modelName: '', leng: '', width: '', height: '', volume: '', price: '', amount: '', totalPrice: '' },
+        { modelName: '', leng: '', width: '', height: '', volume: '', price: '', amount: '', totalPrice: '' },
+        { modelName: '', leng: '', width: '', height: '', volume: '', price: '', amount: '', totalPrice: '' },
+        { modelName: '', leng: '', width: '', height: '', volume: '', price: '', amount: '', totalPrice: '' },
+        { modelName: '', leng: '', width: '', height: '', volume: '', price: '', amount: '', totalPrice: '' },
+        { modelName: '', leng: '', width: '', height: '', volume: '', price: '', amount: '', totalPrice: '' },
+        { modelName: '', leng: '', width: '', height: '', volume: '', price: '', amount: '', totalPrice: '' }
+      ]
+    },
+    getVolume(row) {
+      row.volume = Number(row.leng) * Number(row.width) * Number(row.height) / 1000000
+      return row.volume
     },
     getPrice(row) {
-      row.price = this.formData.unitPrice * row.volume
+      row.price = Number(this.formData.unitPrice * row.volume).toFixed(6)
       if (row.price) {
-        return Number(row.price).toFixed(6) + '元'
+        return row.price + '元'
       }
     },
     modify(row) {
@@ -310,21 +338,42 @@ export default {
       })
     },
     getTotalPrice(row) {
-      row.totalPrice = row.price * row.amount
+      row.totalPrice = Number(row.price * row.amount).toFixed(6)
       if (row.totalPrice) {
-        return Number(row.totalPrice).toFixed(6)
+        return row.totalPrice
       } else {
         return ''
       }
     },
     setTime(val) {
-      this.formQuery.startTime = val[0]
-      this.formQuery.endTime = val[1]
+      if (val) {
+        this.formQuery.startTime = val[0]
+        this.formQuery.endTime = val[1]
+      } else {
+        this.formQuery.startTime = ''
+        this.formQuery.endTime = ''
+      }
+    },
+    async exportOrder() {
+      this.getOrderList()
+      if (this.formQuery.companyName && this.formQuery.startTime) {
+        const res = await exportOrder(this.formQuery)
+        const url = window.URL.createObjectURL(new Blob([res.data], { type: ArrayBuffer }))
+        const link = document.createElement('a')
+        link.style.display = 'none'
+        link.href = url
+        link.setAttribute('download', `${this.formQuery.companyName}-${this.formQuery.startTime}至${this.formQuery.endTime} 账单.xlsx`)
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      } else {
+        this.$message.warning('请先选择公司名称和日期!')
+      }
     },
     async exportExcel() {
       const { orderTime, orderNum, companyName } = this.formData
       if (orderTime && orderNum) {
-        this.$refs.xTable.exportData({ filename: `${orderNum}-${companyName}`, type: 'xlsx', sheetName: companyName, useStyle: true })
+        this.$refs.xTable.exportData({ filename: `${companyName}-${orderNum}`, type: 'xlsx', sheetName: companyName, useStyle: true })
       } else {
         this.$message.warning('请输入单号和日期')
       }
@@ -333,16 +382,11 @@ export default {
       this.$refs['formData'].validate(async(valid) => {
         if (valid) {
           if (this.isEdit) {
-            // this.tableData.forEach((item, index) => {
-            //   if (!item.modelName) {
-            //     this.tableData.splice(index, 1)
-            //   }
-            // })
             this.formData['modelList'] = [...this.tableData]
             const res = await updateOrder(this.formData)
             if (res.code === 20000) {
               this.$message.success('成功')
-              this.getModelList()
+              this.getOrderList()
               this.dialogVisible = false
             }
           } else {

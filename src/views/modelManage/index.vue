@@ -3,10 +3,10 @@
     <div>
       <el-form :inline="true">
         <el-form-item label="型号">
-          <el-input v-model="modelName" clearable placeholder="请输入型号" />
+          <el-input v-model="formQuery.modelName" clearable placeholder="请输入型号" />
         </el-form-item>
         <el-form-item label="公司">
-          <el-select v-model="companyName" clearable placeholder="请选择公司">
+          <el-select v-model="formQuery.companyName" clearable placeholder="请选择公司">
             <el-option v-for="(item, index) in companyList" :key="index" :value="item.companyName" />
           </el-select>
         </el-form-item>
@@ -50,9 +50,9 @@
       </el-table>
       <el-pagination
         style="float: right"
-        :current-page="currentPage"
+        :current-page="formQuery.page"
         :page-sizes="[10, 50, 100, 200]"
-        :page-size="pageSize"
+        :page-size="formQuery.size"
         layout="total, sizes, prev, pager, next, jumper"
         :total="modelTotal"
         @size-change="handleSizeChange"
@@ -110,12 +110,14 @@ export default {
   data() {
     return {
       dialogVisible: false,
-      companyName: '',
       isEdit: false,
-      modelName: '',
-      page: 1,
+      formQuery: {
+        modelName: '',
+        page: 1,
+        size: 10,
+        companyName: ''
+      },
       modelTotal: 1,
-      size: 10,
       tableData: [],
       formData: {
         companyName: '',
@@ -144,11 +146,11 @@ export default {
   },
   methods: {
     handleSizeChange(val) {
-      this.size = val
+      this.formQuery.size = val
       this.getModelList()
     },
     handleCurrentChange(val) {
-      this.page = val
+      this.formQuery.page = val
       this.getModelList()
     },
     modify(row) {
@@ -205,7 +207,7 @@ export default {
       }).catch(() => {})
     },
     async getCompanyList() {
-      const res = await getCompanyList({ companyName: this.companyName })
+      const res = await getCompanyList()
       if (res.code === 20000) {
         this.companyList = res.data
       } else {
@@ -213,13 +215,7 @@ export default {
       }
     },
     async getModelList() {
-      const obj = {
-        modelName: this.modelName,
-        companyName: this.companyName,
-        size: this.size,
-        page: this.page
-      }
-      const res = await getModelList(obj)
+      const res = await getModelList(this.formQuery)
       if (res.code === 20000) {
         this.tableData = res.data.results
         this.modelTotal = res.data.total

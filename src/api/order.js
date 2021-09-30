@@ -28,3 +28,11 @@ export function delOrder(params) {
     params
   })
 }
+export function exportOrder(data) {
+  return request({
+    url: '/order/export',
+    method: 'post',
+    responseType: 'arraybuffer',
+    data
+  })
+}
